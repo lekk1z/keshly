@@ -47,7 +47,7 @@ export default function TabsLayout() {
                     />),
             }} />
             <Tabs.Screen
-            name="user"
+            name="usersettings"
             options={{
                 title:'Korisnik',
                 tabBarIcon: ({ color, focused }) => (
