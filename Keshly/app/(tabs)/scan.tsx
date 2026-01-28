@@ -66,11 +66,23 @@ export default function Scan() {
             alignItems: "center",
           }}
         >
-          <ScrollView style={{ marginTop: 10, maxHeight: 700, width: "90%" }}>
+          <ScrollView style={{ marginTop: 10, maxHeight: 650, width: "90%" }}>
             <Text style={{ fontSize: 15 }}>
               {scrapedData ? scrapedData : "Obrada..."}
             </Text>
           </ScrollView>
+        </View>
+      )}
+      {scanned !== "null" && (
+        <View style={{ marginTop: 16 }}>
+          <Button
+            title="Skeniraj sledeci"
+            onPress={() => {
+              setScanned("null");
+              setScrapedData(null);
+            }}
+            color="#007AFF"
+          />
         </View>
       )}
     </View>
