@@ -1,3 +1,4 @@
+import { useIsFocused } from "@react-navigation/native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import React, { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -7,15 +8,14 @@ export default function Scan() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState("null");
   const [scrapedData, setScrapedData] = useState<string | null>(null);
+  const isFocused = useIsFocused();
 
-  // When scanned changes, fetch the URL content
   React.useEffect(() => {
     const processScanned = async () => {
       if (scanned !== "null") {
         try {
           const response = await fetch(scanned);
           const html = await response.text();
-          // Extract text inside <pre> tags using regex
           const match = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
           const preText = match ? match[1].trim() : "Nema <pre> tagova";
           setScrapedData(preText);
@@ -44,7 +44,7 @@ export default function Scan() {
 
   return (
     <View style={styles.container}>
-      {scanned === "null" && (
+      {isFocused && scanned === "null" && (
         <CameraView
           style={styles.camera}
           facing={facing}
@@ -74,7 +74,14 @@ export default function Scan() {
         </View>
       )}
       {scanned !== "null" && (
-        <View style={{ marginTop: 16 }}>
+        <View
+          style={{
+            marginTop: 16,
+            borderColor: "#007AFF",
+            borderWidth: 1,
+            borderRadius: 7,
+          }}
+        >
           <Button
             title="Skeniraj sledeci"
             onPress={() => {
