@@ -2,7 +2,8 @@ import { useIsFocused } from "@react-navigation/native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import React, { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
-import googleai from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
+
 export default function Scan() {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
@@ -34,16 +35,38 @@ export default function Scan() {
   if (!permission.granted) {
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>
-          Ne mogu da vidim ako mi ne dozvolis pristup kameri
+        <Text style={styles.title}>
+          Molimo Vas da omogućite pristup kameri kako biste mogli skenirati račune.
         </Text>
-        <Button onPress={requestPermission} title="daj pristup kameri" />
+        <Button onPress={requestPermission} title="Dozvoli pristup" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      <View style={styles.contentWrapper}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Skeniraj račun</Text>
+          <Text style={styles.subtitle}>Usmeri kameru ka QR kodu na računu</Text>
+          </View>
+          <View style={styles.card}>
+            <View style={styles.scannerBox}>
+               {isFocused && scanned === "null" && (
+        <CameraView
+          style={styles.scannerFrame}
+          facing={facing}
+          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
+          onBarcodeScanned={({ data }) => {
+            setScanned(data);
+          }}
+        />
+      )}
+            </View>
+          </View>
+      </View>
+      </View>
+   /*  <View style={styles.container}>
       {isFocused && scanned === "null" && (
         <CameraView
           style={styles.camera}
@@ -92,7 +115,7 @@ export default function Scan() {
           />
         </View>
       )}
-    </View>
+    </View> */
   );
 }
 
