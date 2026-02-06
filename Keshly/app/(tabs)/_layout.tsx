@@ -9,8 +9,9 @@ export default function TabsLayout() {
             headerShadowVisible:false,
             headerTintColor:'#000',
             tabBarStyle:{
-                backgroundColor:'#e6e6e6',
-            }
+                backgroundColor:'#eef4ff',
+            },
+            headerShown:false,
         }}>
             <Tabs.Screen
                 name="index"
