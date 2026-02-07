@@ -1,8 +1,8 @@
-import { supabase } from "@/lib/supabase";
 import {
   clampKategorija,
   getKategorijaExplanationForAI,
 } from "@/lib/constants";
+import { supabase } from "@/lib/supabase";
 import { GoogleGenAI } from "@google/genai";
 import { useIsFocused } from "@react-navigation/native";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
@@ -14,6 +14,8 @@ type ArtikalInput = {
   kategorija: number;
   cena: number;
   kolicina: number;
+  datum?: string;
+  vreme?: string;
 };
 
 export default function Scan() {
@@ -44,12 +46,14 @@ export default function Scan() {
           setScrapedData("Morate se prijaviti.");
           return;
         }
-        const genAI = new GoogleGenAI({ apiKey:process.env.EXPO_PUBLIC_GEMINI_API_KEY });
+        const genAI = new GoogleGenAI({
+          apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
+        });
         const kategorijaExplanation = getKategorijaExplanationForAI();
         const result = await genAI.models.generateContent({
           model: "gemini-2.5-flash-lite",
           contents:
-            `Return ONLY a JSON array of receipt line items. Each object must have: naziv (string), kategorija (integer), cena (number), kolicina (integer). ${kategorijaExplanation} No markdown, no explanation. Receipt text:\n\n` +
+            `Return ONLY a JSON array of receipt line items. Each object must have: naziv (string), kategorija (integer), cena (number), kolicina (integer), datum(date),vreme(time). ${kategorijaExplanation} No markdown, no explanation. Receipt text:\n\n` +
             preText,
           config: {
             responseMimeType: "application/json",
@@ -69,6 +73,8 @@ export default function Scan() {
             kategorija: clampKategorija(Number(row?.kategorija ?? 5)),
             cena: Number(row?.cena) || 0,
             kolicina: Number(row?.kolicina) || 1,
+            datum: row?.datum ? String(row.datum) : undefined,
+            vreme: row?.vreme ? String(row.vreme) : undefined,
           }));
         } catch {
           setScrapedData("Greška: neispravan JSON od AI");
@@ -76,8 +82,12 @@ export default function Scan() {
         }
 
         const now = new Date();
-        const datum = now.toISOString().slice(0, 10);
-        const vreme = now.toTimeString().slice(0, 8);
+        const fallbackDatum = now.toISOString().slice(0, 10);
+        const fallbackVreme = now.toTimeString().slice(0, 8);
+        const aiDatum = items.find((item) => item.datum)?.datum;
+        const aiVreme = items.find((item) => item.vreme)?.vreme;
+        const datum = aiDatum && aiDatum.length >= 8 ? aiDatum : fallbackDatum;
+        const vreme = aiVreme && aiVreme.length >= 4 ? aiVreme : fallbackVreme;
         const { data: racunRow, error: racunError } = await supabase
           .from("racun")
           .insert({
@@ -90,7 +100,7 @@ export default function Scan() {
           .single();
         if (racunError || !racunRow?.id) {
           setScrapedData(
-            "Greška pri snimanju: " + (racunError?.message ?? "racun")
+            "Greška pri snimanju: " + (racunError?.message ?? "racun"),
           );
           return;
         }
@@ -112,7 +122,7 @@ export default function Scan() {
         setScrapedData("Sačuvano. Dodato " + items.length + " stavki.");
       } catch (e) {
         setScrapedData(
-          "Greška pri obradi: " + (e instanceof Error ? e.message : String(e))
+          "Greška pri obradi: " + (e instanceof Error ? e.message : String(e)),
         );
       }
     };
