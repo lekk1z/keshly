@@ -68,14 +68,14 @@ export default function Index() {
         </View>
       </View>
       <View style={styles.card}>
-        <View style={styles.cardRow}>
-          <Text style={styles.label}>Ukupna potrošnja:{}</Text>
-          <Text style={styles.totalAmount}>{2000} RSD</Text>
-        </View>
+        <Text style={styles.label}>Ukupna potrošnja:{}</Text>
+        <Text style={styles.totalAmount}>{2000} RSD</Text>
       </View>
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Potrosnja</Text>
-        <Graph chartType="pie" />
+        <Text style={styles.sectionTitle}>Potrošnja</Text>
+        <View style={{ height: 200 }}>
+        <Graph chartType="pie"/>
+        </View>
       </View>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>
@@ -143,19 +143,14 @@ export default function Index() {
 }
 const styles = StyleSheet.create({
   container: {
+    marginTop: 50,
     flex: 1,
     padding: 16,
     backgroundColor: "#EEF2FF",
   },
 
-  contentWrapper: {
-    maxWidth: 420,
-    alignSelf: "center",
-    width: "100%",
-  },
-
   header: {
-    marginBottom: 24,
+    marginBottom: 18,
   },
 
   title: {
@@ -180,7 +175,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
-    marginBottom: 24,
+    marginBottom: 14,
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -188,32 +183,20 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
-  cardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
   label: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#6B7280",
     marginBottom: 4,
   },
 
   totalAmount: {
-    fontSize: 36,
+    fontSize: 30,
     fontWeight: "600",
     color: "#1F2937",
   },
 
-  iconCircleRed: {
-    backgroundColor: "#FEE2E2",
-    padding: 12,
-    borderRadius: 999,
-  },
-
   sectionTitle: {
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: "500",
     color: "#1F2937",
     marginBottom: 16,
@@ -239,7 +222,7 @@ const styles = StyleSheet.create({
   },
 
   categoryName: {
-    fontSize: 19,
+    fontSize: 18,
     color: "#374151",
   },
 
@@ -249,13 +232,13 @@ const styles = StyleSheet.create({
   },
 
   categoryAmount: {
-    fontSize: 19,
+    fontSize: 18,
     color: "#1F2937",
     marginRight: 8,
   },
 
   categoryPercent: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#6B7280",
   },
 
