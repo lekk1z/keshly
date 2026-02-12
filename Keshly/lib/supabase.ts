@@ -21,10 +21,10 @@ if (typeof window !== "undefined" && window.localStorage) {
   };
 }
 
-const supabaseUrl =
+export const supabaseUrl =
   process.env.EXPO_PUBLIC_SUPABASE_URL ||
   "https://ajowaoqzvsxqfixdqkqd.supabase.co";
-const supabasePublishableKey =
+export const supabasePublishableKey =
   process.env.EXPO_PUBLIC_SUPABASE_KEY ||
   "sb_publishable_aIJpC6OSOfhJSavQu6JakA_fzncUjrH";
 

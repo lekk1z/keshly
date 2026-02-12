@@ -2,9 +2,9 @@ import {
   clampKategorija,
   getKategorijaExplanationForAI,
 } from "@/lib/constants";
-import { supabase } from "@/lib/supabase";
-import { GoogleGenAI } from "@google/genai";
+import { supabase, supabasePublishableKey, supabaseUrl } from "@/lib/supabase";
 import { useIsFocused } from "@react-navigation/native";
+import { createClient } from "@supabase/supabase-js";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import React, { useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -33,7 +33,9 @@ export default function Scan() {
         const response = await fetch(scanned);
         const html = await response.text();
         const match = html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-        const preText = match ? match[1].trim() : "Nema <pre> tagova";
+        const preText = match
+          ? match[1].split(/<br\s*\/?\s*>/i)[0].trim()
+          : "Nema <pre> tagova";
         if (!preText || preText === "Nema <pre> tagova") {
           setScrapedData("Nema <pre> tagova");
           return;
@@ -46,15 +48,26 @@ export default function Scan() {
           setScrapedData("Morate se prijaviti.");
           return;
         }
-        const genAI = new GoogleGenAI({
+         
+const supabaseEgdeFunc = createClient(supabaseUrl, supabasePublishableKey);
+const kategorijaExplanation = getKategorijaExplanationForAI();
+const { data } = await supabaseEgdeFunc.functions.invoke('google-ai',{
+  body:{'prompt':`Return ONLY a JSON array of receipt line items. Each object must have: naziv (string), kategorija (integer), cena (number), kolicina (integer), datum(SQL date),vreme(SQL time). ${kategorijaExplanation} No markdown, no explanation. Receipt text:\n\n` +
+            preText}
+});
+
+console.log("raw data: ",data);
+const rawText = data.text?.trim() ?? "";
+console.log("AI response trimmed:", rawText);
+/*
+           new GoogleGenAI({
           apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
         });
         const kategorijaExplanation = getKategorijaExplanationForAI();
         const result = await genAI.models.generateContent({
           model: "gemini-2.5-flash-lite",
           contents:
-            `Return ONLY a JSON array of receipt line items. Each object must have: naziv (string), kategorija (integer), cena (number), kolicina (integer), datum(date),vreme(time). ${kategorijaExplanation} No markdown, no explanation. Receipt text:\n\n` +
-            preText,
+            ,
           config: {
             responseMimeType: "application/json",
           },
@@ -64,6 +77,7 @@ export default function Scan() {
           setScrapedData("Nema AI odgovora");
           return;
         }
+          */
         let items: ArtikalInput[];
         try {
           const parsed = JSON.parse(rawText);
@@ -77,7 +91,7 @@ export default function Scan() {
             vreme: row?.vreme ? String(row.vreme) : undefined,
           }));
         } catch {
-          setScrapedData("Greška: neispravan JSON od AI");
+          setScrapedData("Greška: neispravan JSON od AI"+rawText);
           return;
         }
 
@@ -185,7 +199,9 @@ export default function Scan() {
                   color="#007AFF"
                 />
                 <View style={{ height: 12 }} />
-                <Text style={{ fontSize: 15 }}>{scrapedData}</Text>
+                <ScrollView>
+                  <Text style={{ fontSize: 15 }}>{scrapedData}</Text>
+                </ScrollView>
               </View>
             </View>
           )}

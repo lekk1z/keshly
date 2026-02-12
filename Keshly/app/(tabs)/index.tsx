@@ -5,10 +5,38 @@ import type { Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
+type CategoryTotalRow = {
+  kategorija: string | null;
+  kategorija_naziv: string | null;
+  total_sales: number | string | null;
+};
+
+type CategoryItem = {
+  id: string;
+  name: string;
+  amount: number;
+  percent: number;
+  color: string;
+};
+
+const categoryColors = [
+  "#F87171",
+  "#60A5FA",
+  "#34D399",
+  "#FBBF24",
+  "#4B5563",
+  "#A78BFA",
+  "#F472B6",
+  "#22D3EE",
+];
+
 export default function Index() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [name, setName] = useState<string | null>(null);
+  const [categoryItems, setCategoryItems] = useState<CategoryItem[]>([]);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   useEffect(() => {
     let listener: any;
@@ -17,14 +45,23 @@ export default function Index() {
       setLoading(false);
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchCategoryTotals();
+      } else {
+        setCategoryItems([]);
+        setGrandTotal(0);
+        setDataLoading(false);
       }
     });
     listener = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session?.user) {
         fetchProfile(session.user.id);
+        fetchCategoryTotals();
       } else {
         setName(null);
+        setCategoryItems([]);
+        setGrandTotal(0);
+        setDataLoading(false);
       }
     });
     return () => {
@@ -46,7 +83,60 @@ export default function Index() {
     }
   }
 
-  if (loading) {
+  async function fetchCategoryTotals() {
+    setDataLoading(true);
+    const { data, error } = await supabase.rpc(
+      "category_totals_with_grand_total"
+    );
+    if (error || !data) {
+      setCategoryItems([]);
+      setGrandTotal(0);
+      setDataLoading(false);
+      return;
+    }
+
+    const rows = data as CategoryTotalRow[];
+    const totalRow = rows.find(
+      (row) => row.kategorija_naziv === "GRAND TOTAL"
+    );
+    const totalValue = totalRow
+      ? Number(totalRow.total_sales ?? 0)
+      : rows.reduce((sum, row) => sum + Number(row.total_sales ?? 0), 0);
+
+    const categoryRows = rows.filter(
+      (row) => row.kategorija_naziv && row.kategorija_naziv !== "GRAND TOTAL"
+    );
+
+    const items = categoryRows.map((row, index) => {
+      const amount = Number(row.total_sales ?? 0);
+      const percent = totalValue > 0 ? Math.round((amount / totalValue) * 100) : 0;
+      return {
+        id: row.kategorija ?? `category-${index}`,
+        name: row.kategorija_naziv ?? "Nepoznato",
+        amount,
+        percent,
+        color: categoryColors[index % categoryColors.length],
+      };
+    });
+
+    setCategoryItems(items);
+    setGrandTotal(totalValue);
+    setDataLoading(false);
+  }
+
+  const currencyFormatter = new Intl.NumberFormat("sr-RS", {
+    style: "currency",
+    currency: "RSD",
+    maximumFractionDigits: 2,
+  });
+
+  const pieChartData = categoryItems.map((item) => ({
+    name: item.name,
+    population: item.amount,
+    color: item.color,
+  }));
+
+  if (loading || dataLoading) {
     return (
       <View>
         <Text>Učitavanje...</Text>
@@ -68,13 +158,15 @@ export default function Index() {
         </View>
       </View>
       <View style={styles.card}>
-        <Text style={styles.label}>Ukupna potrošnja:{}</Text>
-        <Text style={styles.totalAmount}>{2000} RSD</Text>
+        <Text style={styles.label}>Ukupna potrošnja:</Text>
+        <Text style={styles.totalAmount}>
+          {currencyFormatter.format(grandTotal)}
+        </Text>
       </View>
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Potrošnja</Text>
         <View style={{ height: 200 }}>
-        <Graph chartType="pie"/>
+          <Graph chartType="pie" pieData={pieChartData} />
         </View>
       </View>
       <View style={styles.card}>
@@ -82,60 +174,30 @@ export default function Index() {
           Nedavna potrošnja po kategorijama
         </Text>
         <View style={styles.categoryList}>
-          <FlatList
-            data={[
-              {
-                id: "1",
-                name: "Namirnice",
-                amount: 500,
-                percent: 25,
-                color: "#F87171",
-              },
-              {
-                id: "2",
-                name: "Restorani i kafici",
-                amount: 300,
-                percent: 15,
-                color: "#60A5FA",
-              },
-              {
-                id: "3",
-                name: "Transport",
-                amount: 200,
-                percent: 10,
-                color: "#34D399",
-              },
-              {
-                id: "4",
-                name: "Zabava",
-                amount: 400,
-                percent: 20,
-                color: "#FBBF24",
-              },
-              {
-                id: "5",
-                name: "Ostalo",
-                amount: 600,
-                percent: 30,
-                color: "#4B5563",
-              },
-            ]}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.categoryRow}>
-                <View style={styles.categoryLeft}>
-                  <View
-                    style={[styles.colorDot, { backgroundColor: item.color }]}
-                  />
-                  <Text style={styles.categoryName}>{item.name}</Text>
+          {categoryItems.length === 0 ? (
+            <Text style={styles.emptyStateText}>No data yet</Text>
+          ) : (
+            <FlatList
+              data={categoryItems}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.categoryRow}>
+                  <View style={styles.categoryLeft}>
+                    <View
+                      style={[styles.colorDot, { backgroundColor: item.color }]}
+                    />
+                    <Text style={styles.categoryName}>{item.name}</Text>
+                  </View>
+                  <View style={styles.categoryRight}>
+                    <Text style={styles.categoryAmount}>
+                      {currencyFormatter.format(item.amount)}
+                    </Text>
+                    <Text style={styles.categoryPercent}>{item.percent}%</Text>
+                  </View>
                 </View>
-                <View style={styles.categoryRight}>
-                  <Text style={styles.categoryAmount}>{item.amount} RSD</Text>
-                  <Text style={styles.categoryPercent}>{item.percent}%</Text>
-                </View>
-              </View>
-            )}
-          />
+              )}
+            />
+          )}
         </View>
       </View>
     </View>
@@ -244,5 +306,10 @@ const styles = StyleSheet.create({
 
   categoryList: {
     gap: 12,
+  },
+
+  emptyStateText: {
+    fontSize: 16,
+    color: "#6B7280",
   },
 });

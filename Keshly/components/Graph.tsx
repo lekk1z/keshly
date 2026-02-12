@@ -2,8 +2,15 @@ import { Dimensions, View } from "react-native";
 import { BarChart, PieChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
+type PieDatum = {
+  name: string;
+  population: number;
+  color: string;
+};
+
 type Props = {
   chartType: string;
+  pieData?: PieDatum[];
 };
 
 const barData = {
@@ -15,7 +22,7 @@ const barData = {
   ],
 };
 
-const pieData = [
+const fallbackPieData = [
   {
     name: "Jan",
     population: 25,
@@ -60,12 +67,13 @@ const chartConfig = {
   },
 };
 
-export default function Graph({ chartType }: Props) {
+export default function Graph({ chartType, pieData }: Props) {
   if (chartType === "pie") {
+    const data = pieData && pieData.length > 0 ? pieData : fallbackPieData;
     return (
       <View>
         <PieChart
-          data={pieData}
+          data={data}
           width={screenWidth - 40}
           height={220}
           chartConfig={chartConfig}
