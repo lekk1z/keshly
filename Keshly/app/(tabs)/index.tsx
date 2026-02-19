@@ -1,8 +1,9 @@
-import Graph from "@/components/Graph";
+import Graph from "@/components/GraphPie";
 import { supabase } from "@/lib/supabase";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useFocusEffect } from "@react-navigation/native";
 import type { Session } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 
 type CategoryTotalRow = {
@@ -70,6 +71,38 @@ export default function Index() {
     // eslint-disable-next-line
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const refresh = async () => {
+        setDataLoading(true);
+        const { data } = await supabase.auth.getSession();
+        if (!isActive) {
+          return;
+        }
+        const currentSession = data.session;
+        setSession(currentSession);
+        setLoading(false);
+        if (currentSession?.user) {
+          await fetchProfile(currentSession.user.id);
+          await fetchCategoryTotals();
+        } else {
+          setName(null);
+          setCategoryItems([]);
+          setGrandTotal(0);
+          setDataLoading(false);
+        }
+      };
+
+      refresh();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
   async function fetchProfile(userId: string) {
     const { data, error, status } = await supabase
       .from("profiles")
@@ -86,7 +119,7 @@ export default function Index() {
   async function fetchCategoryTotals() {
     setDataLoading(true);
     const { data, error } = await supabase.rpc(
-      "category_totals_with_grand_total"
+      "category_totals_with_grand_total",
     );
     if (error || !data) {
       setCategoryItems([]);
@@ -96,20 +129,19 @@ export default function Index() {
     }
 
     const rows = data as CategoryTotalRow[];
-    const totalRow = rows.find(
-      (row) => row.kategorija_naziv === "GRAND TOTAL"
-    );
+    const totalRow = rows.find((row) => row.kategorija_naziv === "GRAND TOTAL");
     const totalValue = totalRow
       ? Number(totalRow.total_sales ?? 0)
       : rows.reduce((sum, row) => sum + Number(row.total_sales ?? 0), 0);
 
     const categoryRows = rows.filter(
-      (row) => row.kategorija_naziv && row.kategorija_naziv !== "GRAND TOTAL"
+      (row) => row.kategorija_naziv && row.kategorija_naziv !== "GRAND TOTAL",
     );
 
     const items = categoryRows.map((row, index) => {
       const amount = Number(row.total_sales ?? 0);
-      const percent = totalValue > 0 ? Math.round((amount / totalValue) * 100) : 0;
+      const percent =
+        totalValue > 0 ? Math.round((amount / totalValue) * 100) : 0;
       return {
         id: row.kategorija ?? `category-${index}`,
         name: row.kategorija_naziv ?? "Nepoznato",
@@ -166,7 +198,7 @@ export default function Index() {
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Potrošnja</Text>
         <View style={{ height: 200 }}>
-          <Graph chartType="pie" pieData={pieChartData} />
+          <Graph pieData={pieChartData} />
         </View>
       </View>
       <View style={styles.card}>
