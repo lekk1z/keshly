@@ -1,5 +1,5 @@
 import { Dimensions, View } from "react-native";
-import { BarChart, PieChart } from "react-native-chart-kit";
+import { PieChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 type PieDatum = {
@@ -9,17 +9,7 @@ type PieDatum = {
 };
 
 type Props = {
-  chartType: string;
   pieData?: PieDatum[];
-};
-
-const barData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-  datasets: [
-    {
-      data: [20, 45, 28, 80, 99, 43],
-    },
-  ],
 };
 
 const fallbackPieData = [
@@ -67,37 +57,20 @@ const chartConfig = {
   },
 };
 
-export default function Graph({ chartType, pieData }: Props) {
-  if (chartType === "pie") {
-    const data = pieData && pieData.length > 0 ? pieData : fallbackPieData;
-    return (
-      <View>
-        <PieChart
-          data={data}
-          width={screenWidth - 40}
-          height={220}
-          chartConfig={chartConfig}
-          accessor="population"
-          backgroundColor="transparent"
-          paddingLeft="0"
-          center={[80,0]}
-          hasLegend={false}
-        />
-      </View>
-    );
-  }
-
+export default function Graph({ pieData }: Props) {
+  const data = pieData && pieData.length > 0 ? pieData : fallbackPieData;
   return (
     <View>
-      <BarChart
-        data={barData}
+      <PieChart
+        data={data}
         width={screenWidth - 40}
         height={220}
         chartConfig={chartConfig}
-        verticalLabelRotation={30}
-        showValuesOnTopOfBars={true}
-        yAxisLabel=""
-        yAxisSuffix=""
+        accessor="population"
+        backgroundColor="transparent"
+        paddingLeft="0"
+        center={[80, 0]}
+        hasLegend={false}
       />
     </View>
   );
