@@ -23,8 +23,8 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Sign in to your account</Text>
+      <Text style={styles.title}>Dobro Došli u Keshly</Text>
+      <Text style={styles.subtitle}>Prijavite se na svoj nalog ili napravite novi</Text>
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
@@ -38,7 +38,7 @@ export default function SignIn() {
       </View>
       <View style={styles.verticallySpaced}>
         <Input
-          label="Password"
+          label="Lozinka"
           onChangeText={(text) => setPassword(text)}
           value={password}
           secureTextEntry={true}
@@ -48,16 +48,16 @@ export default function SignIn() {
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Button
-          title="Sign In"
+          title="Prijavite se"
           disabled={loading}
           onPress={() => signInWithEmail()}
         />
       </View>
 
       <View style={styles.signUpContainer}>
-        <Text style={styles.signUpText}>Don't have an account? </Text>
+        <Text style={styles.signUpText}>Nemate nalog? </Text>
         <TouchableOpacity onPress={() => router.push("/(auth)/sign-up" as any)}>
-          <Text style={styles.signUpLink}>Sign Up</Text>
+          <Text style={styles.signUpLink}>Registrujte se</Text>
         </TouchableOpacity>
       </View>
     </View>

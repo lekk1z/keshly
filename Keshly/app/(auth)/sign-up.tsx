@@ -46,10 +46,10 @@ export default function SignUp() {
 
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Input
-          label="Name"
+          label="Ime i Prezime"
           onChangeText={(text) => setName(text)}
           value={name}
-          placeholder="Your full name"
+          placeholder="Marko Marković"
           autoCapitalize="words"
         />
       </View>
@@ -65,7 +65,7 @@ export default function SignUp() {
       </View>
       <View style={styles.verticallySpaced}>
         <Input
-          label="Password"
+          label="Lozinka"
           onChangeText={(text) => setPassword(text)}
           value={password}
           secureTextEntry={true}
@@ -75,16 +75,16 @@ export default function SignUp() {
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Button
-          title="Sign Up"
+          title="Registrujte se"
           disabled={loading}
           onPress={() => signUpWithEmail()}
         />
       </View>
 
       <View style={styles.signInContainer}>
-        <Text style={styles.signInText}>Already have an account? </Text>
+        <Text style={styles.signInText}>Već imate nalog? </Text>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.signInLink}>Sign In</Text>
+          <Text style={styles.signInLink}>Prijavite se</Text>
         </TouchableOpacity>
       </View>
     </View>

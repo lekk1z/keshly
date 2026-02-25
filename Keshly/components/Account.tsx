@@ -1,15 +1,28 @@
 import { supabase } from "@/lib/supabase";
 import { Button, Input } from "@rneui/themed";
 import { Session } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 export default function Account({ session }: { session: Session }) {
   const [loading, setLoading] = useState(true);
   const [fullName, setFullName] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const confirmationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
   useEffect(() => {
     if (session) getProfile();
   }, [session]);
+
+  useEffect(() => {
+    return () => {
+      if (confirmationTimeoutRef.current) {
+        clearTimeout(confirmationTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function getProfile() {
     try {
@@ -53,6 +66,14 @@ export default function Account({ session }: { session: Session }) {
       if (error) {
         throw error;
       }
+
+      setShowConfirmation(true);
+      if (confirmationTimeoutRef.current) {
+        clearTimeout(confirmationTimeoutRef.current);
+      }
+      confirmationTimeoutRef.current = setTimeout(() => {
+        setShowConfirmation(false);
+      }, 3000);
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert(error.message);
@@ -69,21 +90,24 @@ export default function Account({ session }: { session: Session }) {
       </View>
       <View style={styles.verticallySpaced}>
         <Input
-          label="Full Name"
+          label="Ime i Prezime"
           value={fullName || ""}
           onChangeText={(text) => setFullName(text)}
         />
       </View>
       <View style={[styles.verticallySpaced, styles.mt20]}>
         <Button
-          title={loading ? "Loading ..." : "Update"}
+          title={loading ? "Loading ..." : "Ažurirajte podatke"}
           onPress={() => updateProfile({ fullName: fullName || "" })}
           disabled={loading}
         />
       </View>
+      {showConfirmation ? (
+        <Text style={styles.confirmationText}>Podaci su uspešno ažurirani.</Text>
+      ) : null}
 
       <View style={styles.verticallySpaced}>
-        <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
+        <Button title="Odjavite se" onPress={() => supabase.auth.signOut()} />
       </View>
     </View>
   );
@@ -101,5 +125,11 @@ const styles = StyleSheet.create({
   },
   mt20: {
     marginTop: 20,
+  },
+  confirmationText: {
+    color: "#16A34A",
+    fontSize: 14,
+    marginTop: 4,
+    marginBottom: 8,
   },
 });

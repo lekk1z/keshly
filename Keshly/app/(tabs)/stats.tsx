@@ -1,7 +1,8 @@
 import GraphBar, { BarDatum } from "@/components/GraphBar";
+import RecentlyBoughtItems from "@/components/RecentlyBoughtItems";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 type GrandTotalsLastMonthsRow = {
   month_start: string;
@@ -78,18 +79,26 @@ export default function Stats() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Mesečni pregled</Text>
-        <Text style={styles.subtitle}>Ukupna prodaja za poslednjih 6 meseci</Text>
-      </View>
+    <FlatList
+      data={[{ id: "stats-content" }]}
+      keyExtractor={(item) => item.id}
+      renderItem={() => (
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Mesečni pregled</Text>
+            <Text style={styles.subtitle}>Ukupna prodaja za poslednjih 6 meseci</Text>
+          </View>
 
-      <View style={styles.card}>
-        {loading ? <Text style={styles.statusText}>Loading chart...</Text> : null}
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-        <GraphBar barData={barData} />
-      </View>
-    </View>
+          <View style={styles.card}>
+            {loading ? <Text style={styles.statusText}>Loading chart...</Text> : null}
+            {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+            <GraphBar barData={barData} />
+          </View>
+
+          <RecentlyBoughtItems />
+        </View>
+      )}
+    />
   );
 }
 
@@ -97,36 +106,42 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 50,
     flex: 1,
-    paddingHorizontal: 2,
-    paddingTop: 20,
-    backgroundColor: "#F9FAFB",
+    padding: 16,
+    backgroundColor: "#EEF2FF",
   },
   header: {
-    marginBottom: 14,
+    marginBottom: 18,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: 40,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 3,
   },
   subtitle: {
-    marginTop: 4,
-    fontSize: 14,
+    fontSize: 19,
     color: "#6B7280",
   },
   card: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 15,
+    paddingLeft: 0,
+    padding: 24,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   statusText: {
-    marginBottom: 10,
+    marginBottom: 12,
     color: "#4B5563",
-    fontSize: 14,
+    fontSize: 16,
   },
   errorText: {
-    marginBottom: 10,
+    marginBottom: 12,
     color: "#DC2626",
-    fontSize: 14,
+    fontSize: 16,
   },
 });

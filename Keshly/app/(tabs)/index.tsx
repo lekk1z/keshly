@@ -1,4 +1,5 @@
 import Graph from "@/components/GraphPie";
+import RecentlyBoughtItems from "@/components/RecentlyBoughtItems";
 import { supabase } from "@/lib/supabase";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -176,63 +177,66 @@ export default function Index() {
     );
   }
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Keshly</Text>
-        <View style={styles.dateRow}>
-          <Ionicons name="calendar-outline" size={18} color="#4B5563" />
-          <Text style={styles.dateText}>
-            {Intl.DateTimeFormat("rs-RS", {
-              month: "long",
-              year: "numeric",
-            }).format(new Date())}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.label}>Ukupna potrošnja:</Text>
-        <Text style={styles.totalAmount}>
-          {currencyFormatter.format(grandTotal)}
-        </Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Potrošnja</Text>
-        <View style={{ height: 200 }}>
-          <Graph pieData={pieChartData} />
-        </View>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>
-          Nedavna potrošnja po kategorijama
-        </Text>
-        <View style={styles.categoryList}>
-          {categoryItems.length === 0 ? (
-            <Text style={styles.emptyStateText}>No data yet</Text>
-          ) : (
-            <FlatList
-              data={categoryItems}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <View style={styles.categoryRow}>
-                  <View style={styles.categoryLeft}>
-                    <View
-                      style={[styles.colorDot, { backgroundColor: item.color }]}
-                    />
-                    <Text style={styles.categoryName}>{item.name}</Text>
+    <FlatList
+      data={[{ id: "home-content" }]}
+      keyExtractor={(item) => item.id}
+      renderItem={() => (
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Keshly</Text>
+            <View style={styles.dateRow}>
+              <Ionicons name="calendar-outline" size={18} color="#4B5563" />
+              <Text style={styles.dateText}>
+                {Intl.DateTimeFormat("rs-RS", {
+                  month: "long",
+                  year: "numeric",
+                }).format(new Date())}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.label}>Ukupna potrošnja:</Text>
+            <Text style={styles.totalAmount}>
+              {currencyFormatter.format(grandTotal)}
+            </Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Potrošnja</Text>
+            <View style={{ height: 200 }}>
+              <Graph pieData={pieChartData} />
+            </View>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>
+              Nedavna potrošnja po kategorijama
+            </Text>
+            <View style={styles.categoryList}>
+              {categoryItems.length === 0 ? (
+                <Text style={styles.emptyStateText}>No data yet</Text>
+              ) : (
+                categoryItems.map((item) => (
+                  <View key={item.id} style={styles.categoryRow}>
+                    <View style={styles.categoryLeft}>
+                      <View
+                        style={[styles.colorDot, { backgroundColor: item.color }]}
+                      />
+                      <Text style={styles.categoryName}>{item.name}</Text>
+                    </View>
+                    <View style={styles.categoryRight}>
+                      <Text style={styles.categoryAmount}>
+                        {currencyFormatter.format(item.amount)}
+                      </Text>
+                      <Text style={styles.categoryPercent}>{item.percent}%</Text>
+                    </View>
                   </View>
-                  <View style={styles.categoryRight}>
-                    <Text style={styles.categoryAmount}>
-                      {currencyFormatter.format(item.amount)}
-                    </Text>
-                    <Text style={styles.categoryPercent}>{item.percent}%</Text>
-                  </View>
-                </View>
+                ))
               )}
-            />
-          )}
+            </View>
+          </View>
+          <RecentlyBoughtItems />
         </View>
-      </View>
-    </View>
+      )}
+    />
   );
 }
 const styles = StyleSheet.create({

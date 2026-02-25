@@ -1,7 +1,7 @@
 import Account from "@/components/Account";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import type { Session } from "@supabase/supabase-js";
 
@@ -29,8 +29,17 @@ export default function UserSettings() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={styles.content}>
       {session && session.user ? <Account session={session} /> : null}
-    </View>
+    </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  content: {
+    paddingBottom: 20,
+  },
+  recentWrap: {
+    paddingHorizontal: 12,
+  },
+});
